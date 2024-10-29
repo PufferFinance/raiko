@@ -1,4 +1,5 @@
 use core::mem;
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use crate::primitives::keccak::keccak;
@@ -12,9 +13,8 @@ use crate::{
     CycleTracker,
 };
 use anyhow::{bail, ensure, Result};
-use reth_chainspec::{
-    ChainSpecBuilder, Hardfork, HOLESKY, MAINNET, TAIKO_A7, TAIKO_DEV, TAIKO_MAINNET,
-};
+use once_cell::sync::Lazy;
+use reth_chainspec::{ChainSpecBuilder, ForkCondition, Hardfork, HOLESKY, MAINNET, TAIKO_A7, TAIKO_DEV, TAIKO_MAINNET};
 use reth_evm::execute::{BlockExecutionOutput, BlockValidationError, Executor, ProviderError};
 use reth_evm_ethereum::execute::{
     validate_block_post_execution, Consensus, EthBeaconConsensus, EthExecutorProvider,
@@ -24,7 +24,7 @@ use reth_primitives::revm_primitives::db::{Database, DatabaseCommit};
 use reth_primitives::revm_primitives::{
     Account, AccountInfo, AccountStatus, Bytecode, Bytes, HashMap, SpecId,
 };
-use reth_primitives::{Address, BlockWithSenders, Header, B256, KECCAK_EMPTY, U256};
+use reth_primitives::{Address, BlockWithSenders, Genesis, Header, B256, KECCAK_EMPTY, U256};
 use tracing::{debug, error};
 
 pub fn calculate_block_header(input: &GuestInput) -> Header {
@@ -44,6 +44,41 @@ pub fn calculate_block_header(input: &GuestInput) -> Header {
 
     header
 }
+
+pub static UNIFI_TESTNET: Lazy<Arc<reth_chainspec::ChainSpec>> = Lazy::new(|| {
+    reth_chainspec::ChainSpec {
+        chain: 167_200.into(),
+        genesis: Genesis::default(),
+        genesis_hash: None,
+        paris_block_and_final_difficulty: None,
+        hardforks: BTreeMap::from([
+            (Hardfork::Frontier, ForkCondition::Block(0)),
+            (Hardfork::Homestead, ForkCondition::Block(0)),
+            (Hardfork::Dao, ForkCondition::Block(0)),
+            (Hardfork::Tangerine, ForkCondition::Block(0)),
+            (Hardfork::SpuriousDragon, ForkCondition::Block(0)),
+            (Hardfork::Byzantium, ForkCondition::Block(0)),
+            (Hardfork::Constantinople, ForkCondition::Block(0)),
+            (Hardfork::Petersburg, ForkCondition::Block(0)),
+            (Hardfork::Istanbul, ForkCondition::Block(0)),
+            (Hardfork::Berlin, ForkCondition::Block(0)),
+            (Hardfork::London, ForkCondition::Block(0)),
+            (
+                Hardfork::Paris,
+                ForkCondition::TTD { fork_block: None, total_difficulty: U256::from(0) },
+            ),
+            (Hardfork::Shanghai, ForkCondition::Timestamp(0)),
+            (Hardfork::Hekla, ForkCondition::Block(0)),
+            (
+                Hardfork::Ontake,
+                ForkCondition::Block(0),
+            ),
+        ]),
+        deposit_contract: None,
+        ..Default::default()
+    }
+        .into()
+});
 
 /// Optimistic database
 #[allow(async_fn_in_trait)]
@@ -95,6 +130,7 @@ impl<DB: Database<Error = ProviderError> + DatabaseCommit + OptimisticDatabase>
             }
             "holesky" => HOLESKY.clone(),
             "taiko_dev" => TAIKO_DEV.clone(),
+            "unifi_testnet" => UNIFI_TESTNET.clone(),
             _ => unimplemented!(),
         };
 

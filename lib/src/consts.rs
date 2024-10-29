@@ -256,6 +256,8 @@ pub enum Network {
     TaikoA7,
     /// Taiko Mainnet
     TaikoMainnet,
+    /// UniFi Testnet
+    UniFiTestnet
 }
 
 impl std::fmt::Display for Network {
@@ -265,6 +267,7 @@ impl std::fmt::Display for Network {
             Network::Holesky => "holesky",
             Network::TaikoA7 => "taiko_a7",
             Network::TaikoMainnet => "taiko_mainnet",
+            Network::UniFiTestnet => "unifi_testnet"
         })
     }
 }
