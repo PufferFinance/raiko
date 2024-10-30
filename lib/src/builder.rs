@@ -47,7 +47,7 @@ pub fn calculate_block_header(input: &GuestInput) -> Header {
 
 pub static UNIFI_TESTNET: Lazy<Arc<reth_chainspec::ChainSpec>> = Lazy::new(|| {
     reth_chainspec::ChainSpec {
-        chain: 167_200.into(),
+        chain: 8787.into(),
         genesis: Genesis::default(),
         genesis_hash: None,
         paris_block_and_final_difficulty: None,
